@@ -1,0 +1,5 @@
+.DS_Store
+.env*
+.terraform
+infrastructure/terraform/backend.hcl
+infrastructure/terraform/plan.out

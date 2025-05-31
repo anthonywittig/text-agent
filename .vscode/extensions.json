@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "HashiCorp.terraform",
+    "adpyke.vscode-sql-formatter",
+    "streetsidesoftware.code-spell-checker",
+    "timonwong.shellcheck"
+  ]
+}

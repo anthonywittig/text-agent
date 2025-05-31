@@ -1,0 +1,22 @@
+{
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[shellscript]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.shellcheck": "explicit"
+    }
+  },
+  "[sql]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
+  },
+  "[terraform]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "HashiCorp.terraform"
+  },
+  "[terraform-vars]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "HashiCorp.terraform"
+  }
+}
