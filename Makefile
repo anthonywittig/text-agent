@@ -1,6 +1,6 @@
 .PHONY: infrastructure build all
 
-all: infrastructure build
+all: build infrastructure
 
 infrastructure:
 	@echo "Running infrastructure setup..."

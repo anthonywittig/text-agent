@@ -12,8 +12,12 @@ resource "aws_bedrockagent_agent" "text_agent" {
     When a message is received, determine if you should:
     - Execute one of your tools
     - Generate a response to send back to the conversation
-  EOT
 
+    Use the task tracking tools to manage tasks:
+    - Use create_item when someone mentions a new task or commitment
+    - Use list_items to check existing tasks for a conversation
+    - Use delete_item when a task is no longer relevant
+  EOT
 }
 
 resource "null_resource" "prepare_agent" {
@@ -65,6 +69,13 @@ resource "aws_iam_role_policy" "agent_policy" {
           "bedrock:*"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = aws_lambda_function.task_tracking.arn
       }
     ]
   })

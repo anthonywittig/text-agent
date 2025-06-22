@@ -56,6 +56,20 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
           "xray:PutTelemetryRecords"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan"
+        ]
+        Resource = [
+          aws_dynamodb_table.task_tracking.arn,
+          "${aws_dynamodb_table.task_tracking.arn}/index/*"
+        ]
       }
     ]
   })
