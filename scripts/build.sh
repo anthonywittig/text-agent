@@ -22,7 +22,7 @@ AWS_REGION=$(aws configure get region)
 GIT_COMMIT=$(git rev-parse --short HEAD)
 
 # Get the repository name from the ECR resource
-REPO_NAME="text-agent-task-tracking"
+REPO_NAME="text-agent-task-tracking-list"
 
 # Get the full ECR repository URL
 ECR_REPO="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
@@ -30,7 +30,7 @@ ECR_REPO="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
 # Login to ECR
 aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REPO}"
 
-cd services/task_tracking
+cd services/task_tracking_list
 
 # Build the Docker image
 DOCKER_BUILDKIT=1 docker build \

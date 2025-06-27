@@ -75,7 +75,7 @@ resource "aws_iam_role_policy" "agent_policy" {
         Action = [
           "lambda:InvokeFunction"
         ]
-        Resource = aws_lambda_function.task_tracking.arn
+        Resource = aws_lambda_function.task_tracking_list.arn
       }
     ]
   })

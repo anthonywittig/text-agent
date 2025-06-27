@@ -25,14 +25,14 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking" {
 
   # Set up the Lambda function executor
   action_group_executor {
-    lambda = aws_lambda_function.task_tracking.arn
+    lambda = aws_lambda_function.task_tracking_list.arn
   }
 
   # Ensure the agent and Lambda are created first
   depends_on = [
     aws_bedrockagent_agent.text_agent,
     time_sleep.prepare_agent_sleep,
-    aws_lambda_function.task_tracking
+    aws_lambda_function.task_tracking_list
   ]
 }
 
@@ -40,10 +40,10 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking" {
 resource "aws_lambda_permission" "allow_bedrock" {
   statement_id  = "AllowBedrockToInvokeLambda"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.task_tracking.function_name
+  function_name = aws_lambda_function.task_tracking_list.function_name
   principal     = "bedrock.amazonaws.com"
 
   depends_on = [
-    aws_lambda_function.task_tracking
+    aws_lambda_function.task_tracking_list
   ]
 }
