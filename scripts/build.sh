@@ -30,13 +30,13 @@ ECR_REPO="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
 # Login to ECR
 aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REPO}"
 
-cd services/task_tracking_list
+cd services/task_tracking
 
 # Build the Docker image
 DOCKER_BUILDKIT=1 docker build \
   -t "${ECR_REPO}":"${GIT_COMMIT}" \
   -t "${ECR_REPO}":latest \
-  -f cmd/Dockerfile \
+  -f cmd/list/Dockerfile \
   .
 
 # Push the image to ECR
