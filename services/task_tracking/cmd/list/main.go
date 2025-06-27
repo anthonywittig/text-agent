@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 
 	"github.com/anthonywittig/text-agent/services/task_tracking/pkg/task_repository"
 	"github.com/ttacon/libphonenumber"
@@ -31,7 +30,7 @@ const (
 )
 
 func handleRequest(ctx context.Context, payload Request) (Response, error) {
-	logger := log.Ctx(ctx)
+	logger := zerolog.Ctx(ctx)
 
 	repo, err := task_repository.New(ctx, tableName)
 	if err != nil {
@@ -77,8 +76,7 @@ func handleRequest(ctx context.Context, payload Request) (Response, error) {
 }
 
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	requestWrapper := func(ctx context.Context, payload json.RawMessage) (json.RawMessage, error) {
 		lc, _ := lambdacontext.FromContext(ctx)
@@ -86,7 +84,7 @@ func main() {
 		if lc != nil {
 			requestID = lc.AwsRequestID
 		}
-		logger := log.With().Str("request_id", requestID).Logger()
+		logger := logger.With().Str("request_id", requestID).Logger()
 		ctx = logger.WithContext(ctx)
 
 		logger.Info().Interface("request", payload).Msg("received request")
