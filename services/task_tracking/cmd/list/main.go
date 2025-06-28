@@ -15,8 +15,27 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
-type Request struct {
-	PhoneNumbers []string `json:"phone_numbers"`
+type AgentRequest struct {
+	MessageVersion string `json:"messageVersion"`
+	Function       string `json:"function"`
+	Parameters     []struct {
+		Name  string `json:"name"`
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	} `json:"parameters"`
+	InputText string `json:"inputText"`
+	SessionId string `json:"sessionId"`
+	Agent     struct {
+		Name    string `json:"name"`
+		Version string `json:"version"`
+		Id      string `json:"id"`
+		Alias   string `json:"alias"`
+	} `json:"agent"`
+	ActionGroup string `json:"actionGroup"`
+	// Not sure what this looks like in practice.
+	SessionAttributes interface{} `json:"sessionAttributes,omitempty"`
+	// Not sure what this looks like in practice.
+	PromptSessionAttributes interface{} `json:"promptSessionAttributes,omitempty"`
 }
 
 type Response struct {
@@ -29,7 +48,7 @@ const (
 	tableName = "text-agent-task-tracking"
 )
 
-func handleRequest(ctx context.Context, payload Request) (Response, error) {
+func handleRequest(ctx context.Context, payload AgentRequest) (Response, error) {
 	logger := zerolog.Ctx(ctx)
 
 	repo, err := task_repository.New(ctx, tableName)
@@ -41,8 +60,25 @@ func handleRequest(ctx context.Context, payload Request) (Response, error) {
 		}, nil
 	}
 
-	e164PhoneNumbers := make([]string, len(payload.PhoneNumbers))
-	for i, phoneNumber := range payload.PhoneNumbers {
+	// Iterate over the parameters to find where `name` is "phone_numbers"
+	phoneNumbers := []string{}
+	for _, param := range payload.Parameters {
+		if param.Name == "phone_numbers" {
+			// The value will be a string like "[5551112222, 5551113333]".
+			phoneNumbers = strings.Split(strings.Trim(param.Value, "[]"), ",")
+			break
+		}
+	}
+	if len(phoneNumbers) == 0 {
+		logger.Error().Msg("no phone numbers found")
+		return Response{
+			Status:  "invalid_request",
+			Message: "No phone numbers found",
+		}, nil
+	}
+
+	e164PhoneNumbers := make([]string, len(phoneNumbers))
+	for i, phoneNumber := range phoneNumbers {
 		number, err := libphonenumber.Parse(phoneNumber, "US")
 		if err != nil {
 			logger.Error().Err(err).Msg("failed to parse phone number")
@@ -89,7 +125,7 @@ func main() {
 
 		logger.Info().Interface("request", payload).Msg("received request")
 
-		var request Request
+		var request AgentRequest
 		if err := json.Unmarshal(payload, &request); err != nil {
 			logger.Error().Err(err).Msg("failed to unmarshal request")
 			response := Response{
