@@ -144,7 +144,7 @@ func (r *DynamoRepository) DeleteTask(id string) error {
 func (r *DynamoRepository) ListTasksByConversation(conversationID string) ([]*Task, error) {
 	result, err := r.db.Query(context.Background(), &dynamodb.QueryInput{
 		TableName:              aws.String(r.tableName),
-		IndexName:              aws.String("ConversationIDIndex"),
+		IndexName:              aws.String("ConversationIdIndex"),
 		KeyConditionExpression: aws.String("conversation_id = :convId"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":convId": &types.AttributeValueMemberS{Value: conversationID},

@@ -15,6 +15,7 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
+// https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
 type AgentRequest struct {
 	MessageVersion string `json:"messageVersion"`
 	Function       string `json:"function"`
@@ -42,6 +43,40 @@ type Response struct {
 	Status  string                  `json:"status"`
 	Message string                  `json:"message"`
 	Tasks   []*task_repository.Task `json:"tasks"`
+}
+
+// https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
+type AgentResponse struct {
+	MessageVersion string `json:"messageVersion"`
+	Response       struct {
+		ActionGroup      string `json:"actionGroup"`
+		Function         string `json:"function"`
+		FunctionResponse struct {
+			ResponseState string `json:"responseState"`
+			ResponseBody  struct {
+				ContentType struct {
+					Body string `json:"body"`
+				} `json:"TEXT"`
+			} `json:"responseBody"`
+		} `json:"functionResponse"`
+	} `json:"response"`
+	// SessionAttributes           interface{} `json:"sessionAttributes,omitempty"`
+	// PromptSessionAttributes     interface{} `json:"promptSessionAttributes,omitempty"`
+	// KnowledgeBasesConfiguration []struct {
+	// 	KnowledgeBaseId        string `json:"knowledgeBaseId"`
+	// 	RetrievalConfiguration struct {
+	// 		VectorSearchConfiguration struct {
+	// 			NumberOfResults int `json:"numberOfResults"`
+	// 			Filter          struct {
+	// 				RetrievalFilter struct {
+	// 					Field    string `json:"field"`
+	// 					Operator string `json:"operator"`
+	// 					Value    string `json:"value"`
+	// 				} `json:"filter"`
+	// 			} `json:"vectorSearchConfiguration"`
+	// 		} `json:"retrievalConfiguration"`
+	// 	} `json:"retrievalConfiguration"`
+	// } `json:"knowledgeBasesConfiguration"`
 }
 
 const (
@@ -135,6 +170,8 @@ func main() {
 			responseJSON, _ := json.Marshal(response)
 			return responseJSON, nil
 		}
+
+		logger.Info().Interface("request", request).Msg("parsed request")
 
 		response, err := handleRequest(ctx, request)
 		if err != nil {
