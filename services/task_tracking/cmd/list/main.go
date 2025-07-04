@@ -39,27 +39,10 @@ type AgentRequest struct {
 	PromptSessionAttributes interface{} `json:"promptSessionAttributes,omitempty"`
 }
 
-type Response struct {
-	Status  string                  `json:"status"`
-	Message string                  `json:"message"`
-	Tasks   []*task_repository.Task `json:"tasks"`
-}
-
 // https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
 type AgentResponse struct {
-	MessageVersion string `json:"messageVersion"`
-	Response       struct {
-		ActionGroup      string `json:"actionGroup"`
-		Function         string `json:"function"`
-		FunctionResponse struct {
-			ResponseState string `json:"responseState"`
-			ResponseBody  struct {
-				ContentType struct {
-					Body string `json:"body"`
-				} `json:"TEXT"`
-			} `json:"responseBody"`
-		} `json:"functionResponse"`
-	} `json:"response"`
+	MessageVersion string                `json:"messageVersion"`
+	Response       AgentResponseResponse `json:"response"`
 	// SessionAttributes           interface{} `json:"sessionAttributes,omitempty"`
 	// PromptSessionAttributes     interface{} `json:"promptSessionAttributes,omitempty"`
 	// KnowledgeBasesConfiguration []struct {
@@ -79,19 +62,49 @@ type AgentResponse struct {
 	// } `json:"knowledgeBasesConfiguration"`
 }
 
+type AgentResponseResponse struct {
+	ActionGroup      string                                `json:"actionGroup"`
+	Function         string                                `json:"function"`
+	FunctionResponse AgentResponseResponseFunctionResponse `json:"functionResponse"`
+}
+
+type AgentResponseResponseFunctionResponse struct {
+	ResponseState string                                            `json:"responseState"`
+	ResponseBody  AgentResponseResponseFunctionResponseResponseBody `json:"responseBody"`
+}
+
+type AgentResponseResponseFunctionResponseResponseBody struct {
+	ContentType AgentResponseResponseFunctionResponseResponseBodyContentType `json:"TEXT"`
+}
+
+type AgentResponseResponseFunctionResponseResponseBodyContentType struct {
+	Body string `json:"body"` // This should be a JSON string.
+}
+
 const (
 	tableName = "text-agent-task-tracking"
 )
 
-func handleRequest(ctx context.Context, payload AgentRequest) (Response, error) {
+func handleRequest(ctx context.Context, payload AgentRequest) (AgentResponse, error) {
 	logger := zerolog.Ctx(ctx)
 
 	repo, err := task_repository.New(ctx, tableName)
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to create repository")
-		return Response{
-			Status:  "internal_error",
-			Message: "Internal error",
+		return AgentResponse{
+			MessageVersion: "1.0",
+			Response: AgentResponseResponse{
+				ActionGroup: payload.ActionGroup,
+				Function:    payload.Function,
+				FunctionResponse: AgentResponseResponseFunctionResponse{
+					ResponseState: "FAILURE",
+					ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+						ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+							Body: "{\"message\": \"Internal error\"}",
+						},
+					},
+				},
+			},
 		}, nil
 	}
 
@@ -106,9 +119,20 @@ func handleRequest(ctx context.Context, payload AgentRequest) (Response, error) 
 	}
 	if len(phoneNumbers) == 0 {
 		logger.Error().Msg("no phone numbers found")
-		return Response{
-			Status:  "invalid_request",
-			Message: "No phone numbers found",
+		return AgentResponse{
+			MessageVersion: "1.0",
+			Response: AgentResponseResponse{
+				ActionGroup: payload.ActionGroup,
+				Function:    payload.Function,
+				FunctionResponse: AgentResponseResponseFunctionResponse{
+					ResponseState: "FAILURE",
+					ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+						ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+							Body: "{\"message\": \"No phone numbers found\"}",
+						},
+					},
+				},
+			},
 		}, nil
 	}
 
@@ -117,9 +141,20 @@ func handleRequest(ctx context.Context, payload AgentRequest) (Response, error) 
 		number, err := libphonenumber.Parse(phoneNumber, "US")
 		if err != nil {
 			logger.Error().Err(err).Msg("failed to parse phone number")
-			return Response{
-				Status:  "invalid_request",
-				Message: "Unable to parse phone number " + phoneNumber,
+			return AgentResponse{
+				MessageVersion: "1.0",
+				Response: AgentResponseResponse{
+					ActionGroup: payload.ActionGroup,
+					Function:    payload.Function,
+					FunctionResponse: AgentResponseResponseFunctionResponse{
+						ResponseState: "FAILURE",
+						ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+							ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+								Body: "{\"message\": \"Unable to parse phone number " + phoneNumber + "\"}",
+							},
+						},
+					},
+				},
 			}, nil
 		}
 		e164PhoneNumbers[i] = libphonenumber.Format(number, libphonenumber.E164)
@@ -133,16 +168,42 @@ func handleRequest(ctx context.Context, payload AgentRequest) (Response, error) 
 	tasks, err := repo.ListTasksByConversation(conversationID)
 	if err != nil {
 		logger.Error().Err(err).Str("conversation_id", conversationID).Msg("Failed to list tasks")
-		return Response{
-			Status:  "internal_error",
-			Message: "Internal error",
+		return AgentResponse{
+			MessageVersion: "1.0",
+			Response: AgentResponseResponse{
+				ActionGroup: payload.ActionGroup,
+				Function:    payload.Function,
+				FunctionResponse: AgentResponseResponseFunctionResponse{
+					ResponseState: "FAILURE",
+					ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+						ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+							Body: "{\"message\": \"Internal error\"}",
+						},
+					},
+				},
+			},
 		}, nil
 	}
 
-	return Response{
-		Status:  "success",
-		Message: "Tasks listed successfully",
-		Tasks:   tasks,
+	taskString, err := json.Marshal(tasks)
+	if err != nil {
+		logger.Error().Err(err).Msg("failed to marshal tasks")
+	}
+
+	return AgentResponse{
+		MessageVersion: "1.0",
+		Response: AgentResponseResponse{
+			ActionGroup: payload.ActionGroup,
+			Function:    payload.Function,
+			FunctionResponse: AgentResponseResponseFunctionResponse{
+				ResponseState: "SUCCESS",
+				ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+					ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+						Body: string(taskString),
+					},
+				},
+			},
+		},
 	}, nil
 }
 
@@ -163,9 +224,20 @@ func main() {
 		var request AgentRequest
 		if err := json.Unmarshal(payload, &request); err != nil {
 			logger.Error().Err(err).Msg("failed to unmarshal request")
-			response := Response{
-				Status:  "invalid_request",
-				Message: "Invalid request",
+			response := AgentResponse{
+				MessageVersion: "1.0",
+				Response: AgentResponseResponse{
+					ActionGroup: "invalid_request",
+					Function:    "invalid_request",
+					FunctionResponse: AgentResponseResponseFunctionResponse{
+						ResponseState: "FAILURE",
+						ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+							ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+								Body: "{\"message\": \"Invalid request\"}",
+							},
+						},
+					},
+				},
 			}
 			responseJSON, _ := json.Marshal(response)
 			return responseJSON, nil
@@ -179,8 +251,9 @@ func main() {
 			return nil, err
 		}
 
-		responseJSON, _ := json.Marshal(response)
-		return responseJSON, nil
+		responseJson, _ := json.Marshal(response)
+		logger.Info().Interface("response", response).Msg("sending response")
+		return responseJson, nil
 	}
 
 	lambda.Start(requestWrapper)
