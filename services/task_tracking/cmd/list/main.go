@@ -196,7 +196,7 @@ func handleRequest(ctx context.Context, payload AgentRequest) (AgentResponse, er
 			ActionGroup: payload.ActionGroup,
 			Function:    payload.Function,
 			FunctionResponse: AgentResponseResponseFunctionResponse{
-				ResponseState: "SUCCESS",
+				ResponseState: "REPROMPT",
 				ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
 					ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
 						Body: string(taskString),
