@@ -8,7 +8,6 @@ cd "$PROJECT_ROOT"
 
 export "$(grep -v '^#' ./.env | xargs)"
 
-# Check if AWS_PROFILE is set
 if [ -z "$AWS_PROFILE" ]; then
     echo "Error: AWS_PROFILE environment variable is not set"
     exit 1

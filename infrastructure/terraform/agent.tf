@@ -80,3 +80,7 @@ resource "aws_iam_role_policy" "agent_policy" {
   })
 }
 
+resource "aws_bedrockagent_agent_alias" "text_agent_alias" {
+  agent_id         = aws_bedrockagent_agent.text_agent.agent_id
+  agent_alias_name = "production"
+}

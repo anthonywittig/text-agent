@@ -14,7 +14,7 @@ import (
 func getConversationId(ctx context.Context, payload AgentRequest) (string, error) {
 	logger := zerolog.Ctx(ctx)
 
-	phoneNumbers := strings.Split(strings.Trim(getParameter(payload, "phone_numbers"), "[]"), ",")
+	phoneNumbers := strings.Split(strings.Trim(getParameter(payload, "conversation_phone_numbers"), "[]"), ",")
 	if len(phoneNumbers) == 0 {
 		logger.Error().Msg("no phone numbers found")
 		return "", errors.New("no phone numbers found")

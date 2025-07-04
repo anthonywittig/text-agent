@@ -10,9 +10,9 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
         name        = "task_tracking_create"
         description = "Task Tracking Create"
         parameters {
-          map_block_key = "phone_numbers"
+          map_block_key = "conversation_phone_numbers"
           type          = "array"
-          description   = "The phone numbers to crate a task for"
+          description   = "The phone numbers involved in the conversation"
           required      = true
         }
         parameters {
@@ -30,7 +30,7 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
         parameters {
           map_block_key = "source"
           type          = "string"
-          description   = "The source of the task"
+          description   = "The text of the message that triggered the task creation"
           required      = true
         }
       }
@@ -60,9 +60,9 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
         name        = "task_tracking_list"
         description = "Task Tracking List"
         parameters {
-          map_block_key = "phone_numbers"
+          map_block_key = "conversation_phone_numbers"
           type          = "array"
-          description   = "The phone numbers to list tasks for"
+          description   = "The phone numbers involved in the conversation"
           required      = true
         }
       }
