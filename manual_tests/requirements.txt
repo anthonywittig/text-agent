@@ -1,0 +1,9 @@
+boto3==1.39.3
+botocore==1.39.3
+Faker==37.4.0
+jmespath==1.0.1
+python-dateutil==2.9.0.post0
+s3transfer==0.13.0
+six==1.17.0
+tzdata==2025.2
+urllib3==2.5.0
