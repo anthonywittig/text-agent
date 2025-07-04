@@ -12,8 +12,11 @@ resource "aws_bedrockagent_agent" "text_agent" {
     When a message is received, determine if you should:
     - Execute one of your tools
     - Generate a response to send back to the conversation
-  EOT
 
+    Use the task tracking tools to manage tasks:
+    - Use task_tracking_create when someone mentions a new task or commitment
+    - Use task_tracking_list to check existing tasks for a conversation
+  EOT
 }
 
 resource "null_resource" "prepare_agent" {
@@ -65,8 +68,19 @@ resource "aws_iam_role_policy" "agent_policy" {
           "bedrock:*"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = aws_lambda_function.task_tracking.arn
       }
     ]
   })
 }
 
+resource "aws_bedrockagent_agent_alias" "text_agent_alias" {
+  agent_id         = aws_bedrockagent_agent.text_agent.agent_id
+  agent_alias_name = "production"
+}
