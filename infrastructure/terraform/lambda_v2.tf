@@ -19,7 +19,7 @@ resource "aws_lambda_function" "task_tracking" {
 
   depends_on = [
     aws_iam_role_policy.lambda_exec_policy,
-    aws_cloudwatch_log_group.task_tracking_list,
+    aws_cloudwatch_log_group.task_tracking,
   ]
 }
 

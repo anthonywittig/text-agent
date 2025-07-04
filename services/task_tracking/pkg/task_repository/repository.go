@@ -35,15 +35,14 @@ func New(ctx context.Context, tableName string) (TaskRepository, error) {
 }
 
 // CreateTask creates a new task in DynamoDB
-func (r *DynamoRepository) CreateTask(conversationID, name, description, source string, dueDate *time.Time) (*Task, error) {
+func (r *DynamoRepository) CreateTask(conversationId, name, description, source string) (*Task, error) {
 	task := &Task{
-		ID:             uuid.NewString(),
-		ConversationID: conversationID,
+		Id:             uuid.NewString(),
+		ConversationId: conversationId,
 		Name:           name,
 		Description:    description,
 		Source:         source,
 		Status:         "open",
-		DueDate:        dueDate,
 	}
 
 	av, err := attributevalue.MarshalMap(task)
@@ -57,6 +56,11 @@ func (r *DynamoRepository) CreateTask(conversationID, name, description, source 
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to put item in DynamoDB: %w", err)
+	}
+
+	task, err = r.GetTask(task.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task from DynamoDB: %w", err)
 	}
 
 	return task, nil

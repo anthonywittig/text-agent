@@ -33,12 +33,6 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
           description   = "The source of the task"
           required      = true
         }
-        parameters {
-          map_block_key = "due_date"
-          type          = "string"
-          description   = "The due date of the task"
-          required      = false
-        }
       }
     }
   }

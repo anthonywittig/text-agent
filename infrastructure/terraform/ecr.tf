@@ -23,29 +23,3 @@ resource "aws_ecr_lifecycle_policy" "text_agent_task_tracking" {
   }
 EOF
 }
-
-resource "aws_ecr_repository" "text_agent_task_tracking_list" {
-  name = "text-agent-task-tracking-list"
-}
-
-resource "aws_ecr_lifecycle_policy" "text_agent_task_tracking_list" {
-  repository = aws_ecr_repository.text_agent_task_tracking_list.name
-  policy     = <<EOF
-  {
-    "rules": [
-      {
-        "rulePriority": 1,
-        "description": "Expire older images.",
-        "selection": {
-          "tagStatus": "any",
-          "countType": "imageCountMoreThan",
-          "countNumber": 1
-        },
-        "action": {
-          "type": "expire"
-        }
-      }
-    ]
-  }
-EOF
-}

@@ -21,25 +21,6 @@ AWS_REGION=$(aws configure get region)
 # Get the current git commit hash
 GIT_COMMIT=$(git rev-parse --short HEAD)
 
-
-###
-# Task Tracking List
-###
-
-cd services/task_tracking
-REPO_NAME="text-agent-task-tracking-list"
-ECR_REPO="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
-aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REPO}"
-DOCKER_BUILDKIT=1 docker build \
-  -t "${ECR_REPO}":"${GIT_COMMIT}" \
-  -t "${ECR_REPO}":latest \
-  -f cmd/Dockerfile \
-  .
-docker push "${ECR_REPO}":"${GIT_COMMIT}"
-docker push "${ECR_REPO}":latest
-echo "Successfully built and pushed Docker image to ${ECR_REPO}:${GIT_COMMIT} and ${ECR_REPO}:latest"
-cd ../../
-
 ###
 # Task Tracking
 ###

@@ -16,4 +16,3 @@ Items will have a:
 * description: optional, e.g. `The campout on 8/23 will include a community breakfast. Joe will purchase the items at Costco.`
 * source: e.g. `2025-06-30 Joe said "we need to get breakfast for everyone, I'll run by Costco on Friday and pick stuff up"`
 * status: open; canceled; completed on {DATE}
-* due date: optional, {DATE}

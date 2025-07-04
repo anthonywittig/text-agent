@@ -14,9 +14,8 @@ resource "aws_bedrockagent_agent" "text_agent" {
     - Generate a response to send back to the conversation
 
     Use the task tracking tools to manage tasks:
-    - Use create_item when someone mentions a new task or commitment
-    - Use list_items to check existing tasks for a conversation
-    - Use delete_item when a task is no longer relevant
+    - Use task_tracking_create when someone mentions a new task or commitment
+    - Use task_tracking_list to check existing tasks for a conversation
   EOT
 }
 
@@ -75,7 +74,7 @@ resource "aws_iam_role_policy" "agent_policy" {
         Action = [
           "lambda:InvokeFunction"
         ]
-        Resource = aws_lambda_function.task_tracking_list.arn
+        Resource = aws_lambda_function.task_tracking.arn
       }
     ]
   })

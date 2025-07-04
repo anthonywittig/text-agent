@@ -7,7 +7,7 @@ import (
 // TaskRepository defines the interface for task storage operations
 type TaskRepository interface {
 	// CreateTask creates a new task
-	CreateTask(conversationID, name, description, source string, dueDate *time.Time) (*Task, error)
+	CreateTask(conversationId, name, description, source string) (*Task, error)
 
 	// UpdateTaskStatus updates the status of a task
 	UpdateTaskStatus(id, status string, completionDate *time.Time) (*Task, error)
