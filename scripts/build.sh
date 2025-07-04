@@ -33,7 +33,7 @@ aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AW
 DOCKER_BUILDKIT=1 docker build \
   -t "${ECR_REPO}":"${GIT_COMMIT}" \
   -t "${ECR_REPO}":latest \
-  -f cmd/list/Dockerfile \
+  -f cmd/Dockerfile \
   .
 docker push "${ECR_REPO}":"${GIT_COMMIT}"
 docker push "${ECR_REPO}":latest
@@ -51,7 +51,7 @@ aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AW
 DOCKER_BUILDKIT=1 docker build \
   -t "${ECR_REPO}":"${GIT_COMMIT}" \
   -t "${ECR_REPO}":latest \
-  -f cmd/list/Dockerfile \
+  -f cmd/Dockerfile \
   .
 docker push "${ECR_REPO}":"${GIT_COMMIT}"
 docker push "${ECR_REPO}":latest

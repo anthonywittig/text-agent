@@ -108,6 +108,32 @@ func handleRequest(ctx context.Context, payload AgentRequest) (AgentResponse, er
 		}, nil
 	}
 
+	switch payload.ActionGroup {
+	case "TaskTrackingList":
+		return handleTaskTrackingList(ctx, repo, payload)
+	default:
+		logger.Error().Str("action_group", payload.ActionGroup).Msg("unknown action group")
+		return AgentResponse{
+			MessageVersion: "1.0",
+			Response: AgentResponseResponse{
+				ActionGroup: payload.ActionGroup,
+				Function:    payload.Function,
+				FunctionResponse: AgentResponseResponseFunctionResponse{
+					ResponseState: "FAILURE",
+					ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
+						ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+							Body: "{\"message\": \"Unknown action group\"}",
+						},
+					},
+				},
+			},
+		}, nil
+	}
+}
+
+func handleTaskTrackingList(ctx context.Context, repo task_repository.TaskRepository, payload AgentRequest) (AgentResponse, error) {
+	logger := zerolog.Ctx(ctx)
+
 	// Iterate over the parameters to find where `name` is "phone_numbers"
 	phoneNumbers := []string{}
 	for _, param := range payload.Parameters {

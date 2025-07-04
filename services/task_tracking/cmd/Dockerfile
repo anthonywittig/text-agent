@@ -9,7 +9,7 @@ RUN GOOS=linux GOARCH=arm64 go build \
   -tags lambda.norpc \
   -v \
   -o /usr/local/bin/app \
-  ./cmd/list
+  ./cmd
 
 FROM public.ecr.aws/lambda/provided:al2023
 COPY --from=build /usr/local/bin/app ./app
