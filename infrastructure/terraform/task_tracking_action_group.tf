@@ -1,13 +1,65 @@
-# Create an action group for the Bedrock agent to enable task tracking tools
-resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
-  # Reference the agent ID and set the version to DRAFT
+resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
   agent_id      = aws_bedrockagent_agent.text_agent.agent_id
   agent_version = "DRAFT"
 
-  # Define the action group
+  action_group_name = "TaskTrackingCreate"
+
+  function_schema {
+    member_functions {
+      functions {
+        name        = "task_tracking_create"
+        description = "Task Tracking Create"
+        parameters {
+          map_block_key = "phone_numbers"
+          type          = "array"
+          description   = "The phone numbers to crate a task for"
+          required      = true
+        }
+        parameters {
+          map_block_key = "name"
+          type          = "string"
+          description   = "The name of the task"
+          required      = true
+        }
+        parameters {
+          map_block_key = "description"
+          type          = "string"
+          description   = "The description of the task"
+          required      = true
+        }
+        parameters {
+          map_block_key = "source"
+          type          = "string"
+          description   = "The source of the task"
+          required      = true
+        }
+        parameters {
+          map_block_key = "due_date"
+          type          = "string"
+          description   = "The due date of the task"
+          required      = false
+        }
+      }
+    }
+  }
+
+  action_group_executor {
+    lambda = aws_lambda_function.task_tracking.arn
+  }
+
+  depends_on = [
+    aws_bedrockagent_agent.text_agent,
+    time_sleep.prepare_agent_sleep,
+    aws_lambda_function.task_tracking
+  ]
+}
+
+resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
+  agent_id      = aws_bedrockagent_agent.text_agent.agent_id
+  agent_version = "DRAFT"
+
   action_group_name = "TaskTrackingList"
 
-  # Inline schema that defines the available actions
   function_schema {
     member_functions {
       functions {
@@ -23,12 +75,10 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
     }
   }
 
-  # Set up the Lambda function executor
   action_group_executor {
     lambda = aws_lambda_function.task_tracking.arn
   }
 
-  # Ensure the agent and Lambda are created first
   depends_on = [
     aws_bedrockagent_agent.text_agent,
     time_sleep.prepare_agent_sleep,
@@ -36,7 +86,6 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
   ]
 }
 
-# Allow Bedrock to invoke the Lambda function
 resource "aws_lambda_permission" "allow_bedrock" {
   statement_id  = "AllowBedrockToInvokeLambda"
   action        = "lambda:InvokeFunction"
