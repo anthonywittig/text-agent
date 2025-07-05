@@ -8,7 +8,7 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
     member_functions {
       functions {
         name        = "task_tracking_create"
-        description = "Task Tracking Create"
+        description = "Use this function to create a new task."
         parameters {
           map_block_key = "conversation_phone_numbers"
           type          = "array"
@@ -58,7 +58,7 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_delete" {
     member_functions {
       functions {
         name        = "task_tracking_delete"
-        description = "Task Tracking Delete"
+        description = "Use this function to delete a task. A task should be deleted when it is completed or no longer needed."
         parameters {
           map_block_key = "task_id"
           type          = "string"
@@ -90,7 +90,7 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
     member_functions {
       functions {
         name        = "task_tracking_list"
-        description = "Task Tracking List"
+        description = "Use this function to get the list of tasks for a conversation."
         parameters {
           map_block_key = "conversation_phone_numbers"
           type          = "array"

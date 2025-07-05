@@ -12,11 +12,6 @@ resource "aws_bedrockagent_agent" "text_agent" {
     When a message is received, determine if you should:
     - Execute one of your tools
     - Generate a response to send back to the conversation
-
-    Use the task tracking tools to manage tasks:
-    - Use task_tracking_create when someone mentions a new task or commitment
-    - Use task_tracking_delete when a task is completed or no longer needed
-    - Use task_tracking_list to get the list of tasks
   EOT
 }
 
