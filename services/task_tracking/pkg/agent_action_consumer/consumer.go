@@ -21,6 +21,8 @@ func (c *Consumer) HandleRequest(ctx context.Context, payload AgentRequest) (Age
 	switch payload.ActionGroup {
 	case "TaskTrackingCreate":
 		return c.handleTaskTrackingCreate(ctx, payload)
+	case "TaskTrackingDelete":
+		return c.handleTaskTrackingDelete(ctx, payload)
 	case "TaskTrackingList":
 		return c.handleTaskTrackingList(ctx, payload)
 	default:

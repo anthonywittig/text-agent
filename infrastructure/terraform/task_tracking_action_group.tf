@@ -48,6 +48,38 @@ resource "aws_bedrockagent_agent_action_group" "task_tracking_create" {
   ]
 }
 
+resource "aws_bedrockagent_agent_action_group" "task_tracking_delete" {
+  agent_id      = aws_bedrockagent_agent.text_agent.agent_id
+  agent_version = "DRAFT"
+
+  action_group_name = "TaskTrackingDelete"
+
+  function_schema {
+    member_functions {
+      functions {
+        name        = "task_tracking_delete"
+        description = "Task Tracking Delete"
+        parameters {
+          map_block_key = "task_id"
+          type          = "string"
+          description   = "The ID of the task to delete"
+          required      = true
+        }
+      }
+    }
+  }
+
+  action_group_executor {
+    lambda = aws_lambda_function.task_tracking.arn
+  }
+
+  depends_on = [
+    aws_bedrockagent_agent.text_agent,
+    time_sleep.prepare_agent_sleep,
+    aws_lambda_function.task_tracking
+  ]
+}
+
 resource "aws_bedrockagent_agent_action_group" "task_tracking_list" {
   agent_id      = aws_bedrockagent_agent.text_agent.agent_id
   agent_version = "DRAFT"

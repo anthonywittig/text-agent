@@ -15,7 +15,8 @@ resource "aws_bedrockagent_agent" "text_agent" {
 
     Use the task tracking tools to manage tasks:
     - Use task_tracking_create when someone mentions a new task or commitment
-    - Use task_tracking_list to check existing tasks for a conversation
+    - Use task_tracking_delete when a task is completed or no longer needed
+    - Use task_tracking_list to get the list of tasks
   EOT
 }
 

@@ -21,20 +21,38 @@ def main(agent_alias_id: str, agent_id: str):
     # Note that we strip of the extensions.
     phone_numbers = ",".join([fake.phone_number().split("x")[0] for _ in range(2)])
     context = f"context: phone numbers {phone_numbers}"
-    input_text = f"{context}; message: Joe, please buy a new laptop for the office"
 
-    logger.info(f"Invoking agent with input: {input_text}")
-    response = invoke_agent(
-        bedrock_agent_runtime, agent_alias_id, agent_id, session_id, input_text
+    invoke_agent(
+        bedrock_agent_runtime,
+        agent_alias_id,
+        agent_id,
+        session_id,
+        f"{context}; message: Joe, please buy a new laptop for the office",
     )
-    logger.info(response)
 
-    input_text = f"{context}; message: agent, what tasks do we have?"
-    logger.info(f"Invoking agent with input: {input_text}")
-    response = invoke_agent(
-        bedrock_agent_runtime, agent_alias_id, agent_id, session_id, input_text
+    invoke_agent(
+        bedrock_agent_runtime,
+        agent_alias_id,
+        agent_id,
+        session_id,
+        f"{context}; message: agent, what tasks do we have?",
     )
-    logger.info(response)
+
+    invoke_agent(
+        bedrock_agent_runtime,
+        agent_alias_id,
+        agent_id,
+        session_id,
+        f"{context}; message: I bought the laptop",
+    )
+
+    invoke_agent(
+        bedrock_agent_runtime,
+        agent_alias_id,
+        agent_id,
+        session_id,
+        f"{context}; message: agent, what tasks do we have?",
+    )
 
 
 def invoke_agent(
@@ -43,7 +61,9 @@ def invoke_agent(
     agent_id: str,
     session_id: str,
     input_text,
-) -> str:
+) -> None:
+    logger.info(f"Invoking agent with input: {input_text}")
+
     response = bedrock_agent_runtime.invoke_agent(
         agentAliasId=agent_alias_id,
         agentId=agent_id,
@@ -57,7 +77,7 @@ def invoke_agent(
         if "bytes" in chunk:
             completion += str(chunk["bytes"])
 
-    return completion
+    logger.info(f"Response: {completion}")
 
 
 if __name__ == "__main__":
