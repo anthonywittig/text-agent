@@ -18,12 +18,12 @@ func NewConsumer(repo task_repository.TaskRepository) *Consumer {
 func (c *Consumer) HandleRequest(ctx context.Context, payload AgentRequest) (AgentResponse, error) {
 	logger := zerolog.Ctx(ctx)
 
-	switch payload.ActionGroup {
-	case "TaskTrackingCreate":
+	switch payload.Function {
+	case "task_tracking_create":
 		return c.handleTaskTrackingCreate(ctx, payload)
-	case "TaskTrackingDelete":
+	case "task_tracking_delete":
 		return c.handleTaskTrackingDelete(ctx, payload)
-	case "TaskTrackingList":
+	case "task_tracking_list":
 		return c.handleTaskTrackingList(ctx, payload)
 	default:
 		logger.Error().Str("action_group", payload.ActionGroup).Msg("unknown action group")

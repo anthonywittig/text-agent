@@ -3,7 +3,6 @@ package task_repository
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -42,7 +41,6 @@ func (r *DynamoRepository) CreateTask(conversationId, name, description, source 
 		Name:           name,
 		Description:    description,
 		Source:         source,
-		Status:         "open",
 	}
 
 	av, err := attributevalue.MarshalMap(task)
@@ -89,43 +87,6 @@ func (r *DynamoRepository) GetTask(id string) (*Task, error) {
 	}
 
 	return &task, nil
-}
-
-// UpdateTaskStatus updates the status of an existing task
-func (r *DynamoRepository) UpdateTaskStatus(id, status string, completionDate *time.Time) (*Task, error) {
-	task, err := r.GetTask(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Update the task status based on the requested status
-	switch status {
-	case "open", "canceled":
-		task.Status = status
-	case "completed":
-		completeTime := time.Now()
-		if completionDate != nil {
-			completeTime = *completionDate
-		}
-		task.Status = fmt.Sprintf("completed on %s", completeTime.Format("2006-01-02"))
-	default:
-		return nil, fmt.Errorf("invalid status: %s, must be 'open', 'canceled', or 'completed'", status)
-	}
-
-	av, err := attributevalue.MarshalMap(task)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal task: %w", err)
-	}
-
-	_, err = r.db.PutItem(context.Background(), &dynamodb.PutItemInput{
-		TableName: aws.String(r.tableName),
-		Item:      av,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to update item in DynamoDB: %w", err)
-	}
-
-	return task, nil
 }
 
 // DeleteTask removes a task by ID
