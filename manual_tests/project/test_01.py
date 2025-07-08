@@ -3,7 +3,6 @@ import logging
 import sys
 import time
 import uuid
-import base64
 
 from faker import Faker
 

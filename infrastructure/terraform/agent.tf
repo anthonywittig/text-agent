@@ -6,12 +6,15 @@ resource "aws_bedrockagent_agent" "text_agent" {
   foundation_model        = "arn:aws:bedrock:us-west-2:648145505041:inference-profile/us.amazon.nova-premier-v1:0"
 
   instruction = <<-EOT
-    You are an AI assistant monitoring a group text conversation. Your tasks are:
-    1. Track/update todo items mentioned in the conversation
+    You are an AI assistant monitoring a group text conversation. Your primary task is to track/update todo items mentioned in the conversation.
 
-    When a message is received, determine if you should:
-    - Execute one of your tools
-    - Generate a response to send back to the conversation
+    You will be invoked every time a new message is received. You'll receive the message ID and will need to:
+    - Get the list of recent messages for the conversation
+      - If your message ID isn't the most recent message, you can stop here.
+    - If your message is potentially related to a task, you'll want to:
+      - Pull the list of tasks to see if the message is related to an existing task.
+      - Create or update a task depending on the message.
+    - Send the users a message if appropriate.
   EOT
 }
 
@@ -76,7 +79,23 @@ resource "aws_iam_role_policy" "agent_policy" {
   })
 }
 
+# Force agent alias to update on every deployment
+resource "null_resource" "force_alias_update" {
+  triggers = {
+    git_sha = var.git_sha
+  }
+}
+
 resource "aws_bedrockagent_agent_alias" "text_agent_alias" {
   agent_id         = aws_bedrockagent_agent.text_agent.agent_id
   agent_alias_name = "production"
+
+  # Force recreation when agent, action groups, or deployment changes
+  lifecycle {
+    replace_triggered_by = [
+      aws_bedrockagent_agent.text_agent,
+      aws_bedrockagent_agent_action_group.task_tracking,
+      null_resource.force_alias_update
+    ]
+  }
 }
