@@ -1,4 +1,4 @@
-package agent_action_consumer
+package types
 
 // https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
 type AgentRequest struct {

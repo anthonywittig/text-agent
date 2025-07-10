@@ -12,28 +12,24 @@ import (
 	"github.com/google/uuid"
 )
 
-// DynamoRepository manages task operations against DynamoDB
 type DynamoRepository struct {
 	db        *dynamodb.Client
 	tableName string
 }
 
-// New creates a new DynamoRepository
-func New(ctx context.Context, tableName string) (TaskRepository, error) {
+func New(ctx context.Context) (TaskRepository, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load SDK config: %v", err)
 	}
 
-	// Create DynamoDB client
 	db := dynamodb.NewFromConfig(cfg)
 	return &DynamoRepository{
 		db:        db,
-		tableName: tableName,
+		tableName: "text-agent-task-tracking",
 	}, nil
 }
 
-// CreateTask creates a new task in DynamoDB
 func (r *DynamoRepository) CreateTask(conversationId, name, description, source string) (*Task, error) {
 	task := &Task{
 		Id:             uuid.NewString(),
@@ -64,7 +60,6 @@ func (r *DynamoRepository) CreateTask(conversationId, name, description, source 
 	return task, nil
 }
 
-// GetTask retrieves a task by ID
 func (r *DynamoRepository) GetTask(id string) (*Task, error) {
 	result, err := r.db.GetItem(context.Background(), &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
@@ -89,7 +84,6 @@ func (r *DynamoRepository) GetTask(id string) (*Task, error) {
 	return &task, nil
 }
 
-// DeleteTask removes a task by ID
 func (r *DynamoRepository) DeleteTask(id string) error {
 	_, err := r.db.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.tableName),
@@ -105,7 +99,6 @@ func (r *DynamoRepository) DeleteTask(id string) error {
 	return nil
 }
 
-// ListTasksByConversation retrieves all tasks for a conversation
 func (r *DynamoRepository) ListTasksByConversation(conversationID string) ([]*Task, error) {
 	result, err := r.db.Query(context.Background(), &dynamodb.QueryInput{
 		TableName:              aws.String(r.tableName),

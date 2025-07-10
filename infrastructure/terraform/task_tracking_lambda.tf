@@ -67,11 +67,7 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
-          "dynamodb:Query",
-          "dynamodb:Scan"
+          "dynamodb:*",
         ]
         Resource = [
           aws_dynamodb_table.task_tracking.arn,

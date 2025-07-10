@@ -18,7 +18,7 @@ type DynamoRepository struct {
 	tableName string
 }
 
-func New(ctx context.Context, tableName string) (MessageRepository, error) {
+func New(ctx context.Context) (MessageRepository, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load SDK config: %v", err)
@@ -27,7 +27,7 @@ func New(ctx context.Context, tableName string) (MessageRepository, error) {
 	db := dynamodb.NewFromConfig(cfg)
 	return &DynamoRepository{
 		db:        db,
-		tableName: tableName,
+		tableName: "text-agent-messaging",
 	}, nil
 }
 

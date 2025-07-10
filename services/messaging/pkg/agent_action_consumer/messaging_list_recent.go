@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/rs/zerolog"
 )
 
-func (c *Consumer) handleMessageListRecent(ctx context.Context, payload AgentRequest) (AgentResponse, error) {
+func (c *Consumer) handleMessageListRecent(ctx context.Context, payload types.AgentRequest) (types.AgentResponse, error) {
 	logger := zerolog.Ctx(ctx)
 
 	conversationId, err := getConversationId(ctx, payload)
@@ -28,15 +29,15 @@ func (c *Consumer) handleMessageListRecent(ctx context.Context, payload AgentReq
 		logger.Error().Err(err).Msg("failed to marshal messages")
 	}
 
-	return AgentResponse{
+	return types.AgentResponse{
 		MessageVersion: "1.0",
-		Response: AgentResponseResponse{
+		Response: types.AgentResponseResponse{
 			ActionGroup: payload.ActionGroup,
 			Function:    payload.Function,
-			FunctionResponse: AgentResponseResponseFunctionResponse{
+			FunctionResponse: types.AgentResponseResponseFunctionResponse{
 				ResponseState: "REPROMPT",
-				ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
-					ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+				ResponseBody: types.AgentResponseResponseFunctionResponseResponseBody{
+					ContentType: types.AgentResponseResponseFunctionResponseResponseBodyContentType{
 						Body: string(messageString),
 					},
 				},

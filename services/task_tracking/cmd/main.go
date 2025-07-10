@@ -13,16 +13,12 @@ import (
 	"github.com/anthonywittig/text-agent/services/task_tracking/pkg/task_repository"
 )
 
-const (
-	tableName = "text-agent-task-tracking"
-)
-
 func main() {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	ctx := context.Background()
 
-	repo, err := task_repository.New(ctx, tableName)
+	repo, err := task_repository.New(ctx)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to create repository")
 	}

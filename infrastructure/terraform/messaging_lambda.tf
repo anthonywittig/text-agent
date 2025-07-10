@@ -6,7 +6,7 @@ resource "aws_cloudwatch_log_group" "messaging" {
 
 resource "aws_lambda_function" "messaging" {
   function_name = "text-agent-messaging"
-  role          = aws_iam_role.lambda_exec.arn
+  role          = aws_iam_role.lambda_exec_messaging.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.text_agent_messaging.repository_url}:${var.git_sha}"
   memory_size   = 128
@@ -14,12 +14,15 @@ resource "aws_lambda_function" "messaging" {
   architectures = ["arm64"]
 
   environment {
-    variables = {}
+    variables = {
+      AGENT_ALIAS_ID = aws_bedrockagent_agent_alias.text_agent_alias.agent_alias_id
+      AGENT_ID       = aws_bedrockagent_agent.text_agent.agent_id
+    }
   }
 
   depends_on = [
-    aws_iam_role_policy.lambda_exec_policy,
-    aws_cloudwatch_log_group.task_tracking,
+    aws_iam_role_policy.lambda_exec_policy_messaging,
+    aws_cloudwatch_log_group.messaging,
   ]
 }
 
@@ -67,11 +70,7 @@ resource "aws_iam_role_policy" "lambda_exec_policy_messaging" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
-          "dynamodb:Query",
-          "dynamodb:Scan"
+          "dynamodb:*",
         ]
         Resource = [
           aws_dynamodb_table.messaging.arn,

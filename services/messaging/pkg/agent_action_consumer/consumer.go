@@ -3,19 +3,22 @@ package agent_action_consumer
 import (
 	"context"
 
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/agent_service"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/message_repository"
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/rs/zerolog"
 )
 
 type Consumer struct {
-	repo message_repository.MessageRepository
+	agentService agent_service.AgentService
+	repo         message_repository.MessageRepository
 }
 
-func NewConsumer(repo message_repository.MessageRepository) *Consumer {
-	return &Consumer{repo: repo}
+func NewConsumer(agentService agent_service.AgentService, repo message_repository.MessageRepository) *Consumer {
+	return &Consumer{agentService: agentService, repo: repo}
 }
 
-func (c *Consumer) HandleRequest(ctx context.Context, payload AgentRequest) (AgentResponse, error) {
+func (c *Consumer) HandleRequest(ctx context.Context, payload types.AgentRequest) (types.AgentResponse, error) {
 	logger := zerolog.Ctx(ctx)
 
 	switch payload.Function {
@@ -25,15 +28,15 @@ func (c *Consumer) HandleRequest(ctx context.Context, payload AgentRequest) (Age
 		return c.handleMessageListRecent(ctx, payload)
 	default:
 		logger.Error().Str("action_group", payload.ActionGroup).Msg("unknown action group")
-		return AgentResponse{
+		return types.AgentResponse{
 			MessageVersion: "1.0",
-			Response: AgentResponseResponse{
+			Response: types.AgentResponseResponse{
 				ActionGroup: payload.ActionGroup,
 				Function:    payload.Function,
-				FunctionResponse: AgentResponseResponseFunctionResponse{
+				FunctionResponse: types.AgentResponseResponseFunctionResponse{
 					ResponseState: "FAILURE",
-					ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
-						ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+					ResponseBody: types.AgentResponseResponseFunctionResponseResponseBody{
+						ContentType: types.AgentResponseResponseFunctionResponseResponseBodyContentType{
 							Body: "{\"message\": \"Unknown action group\"}",
 						},
 					},

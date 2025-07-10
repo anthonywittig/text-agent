@@ -6,14 +6,12 @@ import (
 	"os"
 
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/agent_action_consumer"
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/agent_service"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/message_repository"
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/rs/zerolog"
-)
-
-const (
-	tableName = "text-agent-task-tracking"
 )
 
 func main() {
@@ -21,12 +19,27 @@ func main() {
 
 	ctx := context.Background()
 
-	repo, err := message_repository.New(ctx, tableName)
+	agentAliasId := os.Getenv("AGENT_ALIAS_ID")
+	if agentAliasId == "" {
+		logger.Fatal().Msg("AGENT_ALIAS_ID is not set")
+	}
+
+	agentId := os.Getenv("AGENT_ID")
+	if agentId == "" {
+		logger.Fatal().Msg("AGENT_ID is not set")
+	}
+
+	agentService, err := agent_service.NewAws(ctx, agentAliasId, agentId)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to create agent service")
+	}
+
+	repo, err := message_repository.New(ctx)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to create repository")
 	}
 
-	consumer := agent_action_consumer.NewConsumer(repo)
+	consumer := agent_action_consumer.NewConsumer(agentService, repo)
 
 	requestWrapper := func(ctx context.Context, payload json.RawMessage) (json.RawMessage, error) {
 		lc, _ := lambdacontext.FromContext(ctx)
@@ -39,18 +52,18 @@ func main() {
 
 		logger.Info().Interface("request", payload).Msg("received request")
 
-		var request agent_action_consumer.AgentRequest
+		var request types.AgentRequest
 		if err := json.Unmarshal(payload, &request); err != nil {
 			logger.Error().Err(err).Msg("failed to unmarshal request")
-			response := agent_action_consumer.AgentResponse{
+			response := types.AgentResponse{
 				MessageVersion: "1.0",
-				Response: agent_action_consumer.AgentResponseResponse{
+				Response: types.AgentResponseResponse{
 					ActionGroup: "invalid_request",
 					Function:    "invalid_request",
-					FunctionResponse: agent_action_consumer.AgentResponseResponseFunctionResponse{
+					FunctionResponse: types.AgentResponseResponseFunctionResponse{
 						ResponseState: "FAILURE",
-						ResponseBody: agent_action_consumer.AgentResponseResponseFunctionResponseResponseBody{
-							ContentType: agent_action_consumer.AgentResponseResponseFunctionResponseResponseBodyContentType{
+						ResponseBody: types.AgentResponseResponseFunctionResponseResponseBody{
+							ContentType: types.AgentResponseResponseFunctionResponseResponseBodyContentType{
 								Body: "{\"message\": \"Invalid request\"}",
 							},
 						},

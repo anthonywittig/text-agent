@@ -7,11 +7,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/rs/zerolog"
 	"github.com/ttacon/libphonenumber"
 )
 
-func getConversationId(ctx context.Context, payload AgentRequest) (string, error) {
+func getConversationId(ctx context.Context, payload types.AgentRequest) (string, error) {
 	logger := zerolog.Ctx(ctx)
 
 	phoneNumbers := strings.Split(strings.Trim(getParameter(payload, "conversation_phone_numbers"), "[]"), ",")
@@ -35,16 +36,16 @@ func getConversationId(ctx context.Context, payload AgentRequest) (string, error
 	return conversationId, nil
 }
 
-func getFailureResponse(payload AgentRequest, message string) AgentResponse {
-	return AgentResponse{
+func getFailureResponse(payload types.AgentRequest, message string) types.AgentResponse {
+	return types.AgentResponse{
 		MessageVersion: "1.0",
-		Response: AgentResponseResponse{
+		Response: types.AgentResponseResponse{
 			ActionGroup: payload.ActionGroup,
 			Function:    payload.Function,
-			FunctionResponse: AgentResponseResponseFunctionResponse{
+			FunctionResponse: types.AgentResponseResponseFunctionResponse{
 				ResponseState: "FAILURE",
-				ResponseBody: AgentResponseResponseFunctionResponseResponseBody{
-					ContentType: AgentResponseResponseFunctionResponseResponseBodyContentType{
+				ResponseBody: types.AgentResponseResponseFunctionResponseResponseBody{
+					ContentType: types.AgentResponseResponseFunctionResponseResponseBodyContentType{
 						Body: fmt.Sprintf("{\"message\": \"%s\"}", message),
 					},
 				},
@@ -53,7 +54,7 @@ func getFailureResponse(payload AgentRequest, message string) AgentResponse {
 	}
 }
 
-func getParameter(payload AgentRequest, name string) string {
+func getParameter(payload types.AgentRequest, name string) string {
 	for _, param := range payload.Parameters {
 		if param.Name == name {
 			return param.Value
