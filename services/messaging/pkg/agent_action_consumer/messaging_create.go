@@ -70,6 +70,7 @@ func (c *Consumer) invokeAgent(ctx context.Context, payload types.AgentRequest) 
 
 	// If the message is from an agent, don't do anything.
 	if payload.Agent.Name != "" {
+		logger.Info().Str("agent_name", payload.Agent.Name).Msg("message from agent, skipping")
 		return nil
 	}
 
