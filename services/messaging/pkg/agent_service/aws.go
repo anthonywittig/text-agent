@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type Aws struct {
@@ -31,6 +32,8 @@ func NewAws(ctx context.Context, agentAliasId string, agentId string) (AgentServ
 }
 
 func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
+	logger := zerolog.Ctx(ctx)
+
 	sessionId := uuid.New().String()
 	invokeInput := &bedrockagentruntime.InvokeAgentInput{
 		AgentAliasId: &a.agentAliasId,
@@ -43,6 +46,8 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Msg("agent result")
 
 	stream := invokeOutput.GetStream()
 

@@ -53,6 +53,15 @@ resource "aws_iam_role_policy" "lambda_exec_policy_messaging" {
       {
         Effect = "Allow"
         Action = [
+          "bedrock:InvokeAgent"
+        ]
+        Resource = [
+          "*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
