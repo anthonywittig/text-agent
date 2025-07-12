@@ -7,6 +7,7 @@ import (
 
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/message_repository"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
+	"github.com/nyaruka/phonenumbers"
 	"github.com/rs/zerolog"
 )
 
@@ -25,9 +26,16 @@ func (c *Consumer) handleMessageCreate(ctx context.Context, payload types.AgentR
 		return getFailureResponse(payload, err.Error()), nil
 	}
 
+	// From can be things like "Assistant" or a phone number.
+	from := getParameter(payload, "from")
+	parsedFrom, err := phonenumbers.Parse(from, "US") // We assume US for now.
+	if err == nil {
+		from = phonenumbers.Format(parsedFrom, phonenumbers.E164)
+	}
+
 	message, err := c.repo.CreateMessage(
 		conversationId,
-		getParameter(payload, "from"),
+		from,
 		getParameter(payload, "body"),
 	)
 	if err != nil {

@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.43.4
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.35.7
 	github.com/google/uuid v1.6.0
+	github.com/nyaruka/phonenumbers v1.6.3
 	github.com/rs/zerolog v1.32.0
 	github.com/ttacon/libphonenumber v1.2.1
 )
@@ -34,6 +35,8 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/sys v0.12.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 )

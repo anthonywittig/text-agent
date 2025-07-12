@@ -10,7 +10,7 @@ resource "aws_lambda_function" "task_tracking" {
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.text_agent_task_tracking.repository_url}:${var.git_sha}"
   memory_size   = 128
-  timeout       = 30
+  timeout       = 300
   architectures = ["arm64"]
 
   environment {

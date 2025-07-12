@@ -20,27 +20,27 @@ def main():
 
     create_message(
         phone_numbers,
-        phone_numbers[0],
+        phone_numbers[0],  # Jane
         "Joe, please buy a new laptop for the office",
     )
 
-    # create_message(
-    #     phone_numbers,
-    #     phone_numbers[0],
-    #     "agent, what tasks do we have?",
-    # )
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "agent, what tasks do we have?",
+    )
 
-    # create_message(
-    #     phone_numbers,
-    #     phone_numbers[1],
-    #     "I bought the laptop",
-    # )
+    create_message(
+        phone_numbers,
+        phone_numbers[1],  # Joe
+        "I bought the laptop",
+    )
 
-    # create_message(
-    #     phone_numbers,
-    #     phone_numbers[0],
-    #     "agent, what tasks do we have?",
-    # )
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "agent, what tasks do we have?",
+    )
 
 
 def create_message(
