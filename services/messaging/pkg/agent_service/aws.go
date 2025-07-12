@@ -49,7 +49,7 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 		return "", err
 	}
 
-	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Msg("agent result metadata")
+	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Interface("invokeOutput", invokeOutput).Msg("agent result")
 
 	stream := invokeOutput.GetStream()
 
