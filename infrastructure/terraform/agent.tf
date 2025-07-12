@@ -1,4 +1,5 @@
 # You probably need to request access to the agent (I did so manually).
+# I manually enabled "Model invocation logging" in the AWS console.
 
 resource "aws_cloudwatch_log_group" "bedrock_logs" {
   name              = "/aws/bedrock/text-agent"
@@ -28,7 +29,9 @@ resource "aws_bedrockagent_agent" "text_agent" {
 
 resource "null_resource" "prepare_agent" {
   triggers = {
-    agent_state = sha256(jsonencode(aws_bedrockagent_agent.text_agent))
+    agent_state                = sha256(jsonencode(aws_bedrockagent_agent.text_agent))
+    task_tracking_action_group = sha256(jsonencode(aws_bedrockagent_agent_action_group.task_tracking))
+    messaging_action_group     = sha256(jsonencode(aws_bedrockagent_agent_action_group.messaging))
   }
 
   provisioner "local-exec" {
@@ -81,7 +84,10 @@ resource "aws_iam_role_policy" "agent_policy" {
         Action = [
           "lambda:InvokeFunction"
         ]
-        Resource = aws_lambda_function.task_tracking.arn
+        Resource = [
+          aws_lambda_function.task_tracking.arn,
+          aws_lambda_function.messaging.arn
+        ]
       },
       {
         Effect = "Allow"
@@ -142,6 +148,7 @@ resource "aws_bedrockagent_agent_alias" "text_agent_alias" {
     replace_triggered_by = [
       aws_bedrockagent_agent.text_agent,
       aws_bedrockagent_agent_action_group.task_tracking,
+      aws_bedrockagent_agent_action_group.messaging,
       null_resource.force_alias_update
     ]
   }

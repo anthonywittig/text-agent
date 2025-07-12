@@ -54,13 +54,13 @@ resource "aws_bedrockagent_agent_action_group" "messaging" {
   ]
 }
 
-# resource "aws_lambda_permission" "allow_bedrock_messaging" {
-#   statement_id  = "AllowBedrockToInvokeLambda"
-#   action        = "lambda:InvokeFunction"
-#   function_name = aws_lambda_function.task_tracking.function_name
-#   principal     = "bedrock.amazonaws.com"
+resource "aws_lambda_permission" "allow_bedrock_messaging" {
+  statement_id  = "AllowBedrockToInvokeLambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.messaging.function_name
+  principal     = "bedrock.amazonaws.com"
 
-#   depends_on = [
-#     aws_lambda_function.task_tracking
-#   ]
-# }
+  depends_on = [
+    aws_lambda_function.messaging
+  ]
+}

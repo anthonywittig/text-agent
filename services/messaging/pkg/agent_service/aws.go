@@ -48,22 +48,53 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 		StreamingConfigurations: &streamingConfigurations,
 	}
 
-	logger.Info().Interface("invokeInput", invokeInput).Msg("invoking agent")
+	logger.Info().
+		Str("agentAliasId", a.agentAliasId).
+		Str("agentId", a.agentId).
+		Str("sessionId", sessionId).
+		Str("input", input).
+		Interface("streamingConfig", streamingConfigurations).
+		Msg("invoking agent")
 
 	invokeOutput, err := a.bedrockAgent.InvokeAgent(ctx, invokeInput)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to invoke agent: %w", err)
 	}
 
-	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Interface("invokeOutput", invokeOutput).Msg("agent result")
+	logger.Info().
+		Interface("resultMetadata", invokeOutput.ResultMetadata).
+		Interface("contentType", invokeOutput.ContentType).
+		Msg("agent invocation successful")
 
 	stream := invokeOutput.GetStream()
 
 	var response string
+	logger.Info().Msg("starting to process stream events")
+
 	for event := range stream.Events() {
-		if chunk, ok := event.(*types.ResponseStreamMemberChunk); ok && chunk.Value.Bytes != nil {
-			response += string(chunk.Value.Bytes)
+		logger.Debug().Interface("event", event).Msg("received stream event")
+
+		switch e := event.(type) {
+		case *types.ResponseStreamMemberChunk:
+			if e.Value.Bytes != nil {
+				chunkText := string(e.Value.Bytes)
+				response += chunkText
+				logger.Debug().Str("chunk", chunkText).Msg("added chunk to response")
+			}
+		case *types.ResponseStreamMemberTrace:
+			logger.Debug().Interface("trace", e.Value).Msg("received trace event")
+		case *types.ResponseStreamMemberReturnControl:
+			logger.Debug().Interface("returnControl", e.Value).Msg("received return control event")
+		default:
+			logger.Debug().Interface("event", event).Msg("received unknown event type")
 		}
+	}
+
+	logger.Info().Str("finalResponse", response).Int("responseLength", len(response)).Msg("finished processing stream")
+
+	// If we got no response, log a warning
+	if response == "" {
+		logger.Warn().Msg("agent returned empty response - this might indicate the agent didn't understand the input or couldn't take action")
 	}
 
 	return response, nil
