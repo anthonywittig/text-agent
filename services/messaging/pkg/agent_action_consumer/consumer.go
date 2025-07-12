@@ -22,12 +22,12 @@ func (c *Consumer) HandleRequest(ctx context.Context, payload types.AgentRequest
 	logger := zerolog.Ctx(ctx)
 
 	switch payload.Function {
-	case "message_create":
+	case "messaging_create":
 		return c.handleMessageCreate(ctx, payload)
-	case "message_list_recent":
+	case "messaging_list_recent":
 		return c.handleMessageListRecent(ctx, payload)
 	default:
-		logger.Error().Str("action_group", payload.ActionGroup).Msg("unknown action group")
+		logger.Error().Str("function", payload.Function).Msg("unknown function")
 		return types.AgentResponse{
 			MessageVersion: "1.0",
 			Response: types.AgentResponseResponse{

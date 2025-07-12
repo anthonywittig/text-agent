@@ -61,7 +61,7 @@ def create_message(
         Payload=json.dumps(
             {
                 "messageVersion": "1.0",
-                "function": "message_create",
+                "function": "messaging_create",
                 "parameters": [
                     {
                         "name": "conversation_phone_numbers",

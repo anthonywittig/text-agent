@@ -15,8 +15,8 @@ resource "aws_lambda_function" "messaging" {
 
   environment {
     variables = {
-      AGENT_ALIAS_ID = aws_bedrockagent_agent_alias.text_agent_alias.agent_alias_id
-      AGENT_ID       = aws_bedrockagent_agent.text_agent.agent_id
+      AGENT_ALIAS_ID_SECRET_ID = aws_secretsmanager_secret.bedrock_agent_alias_id.id
+      AGENT_ID_SECRET_ID       = aws_secretsmanager_secret.bedrock_agent_id.id
     }
   }
 
@@ -84,6 +84,16 @@ resource "aws_iam_role_policy" "lambda_exec_policy_messaging" {
         Resource = [
           aws_dynamodb_table.messaging.arn,
           "${aws_dynamodb_table.messaging.arn}/index/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.bedrock_agent_alias_id.arn,
+          aws_secretsmanager_secret.bedrock_agent_id.arn,
         ]
       }
     ]
