@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
@@ -34,12 +35,17 @@ func NewAws(ctx context.Context, agentAliasId string, agentId string) (AgentServ
 func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 	logger := zerolog.Ctx(ctx)
 
+	streamingConfigurations := types.StreamingConfigurations{
+		StreamFinalResponse: true,
+	}
 	sessionId := uuid.New().String()
 	invokeInput := &bedrockagentruntime.InvokeAgentInput{
-		AgentAliasId: &a.agentAliasId,
-		AgentId:      &a.agentId,
-		InputText:    &input,
-		SessionId:    &sessionId,
+		AgentAliasId:            &a.agentAliasId,
+		AgentId:                 &a.agentId,
+		InputText:               &input,
+		SessionId:               &sessionId,
+		EnableTrace:             aws.Bool(true),
+		StreamingConfigurations: &streamingConfigurations,
 	}
 
 	logger.Info().Interface("invokeInput", invokeInput).Msg("invoking agent")

@@ -1,5 +1,15 @@
 # You probably need to request access to the agent (I did so manually).
 
+resource "aws_cloudwatch_log_group" "bedrock_logs" {
+  name              = "/aws/bedrock/text-agent"
+  retention_in_days = 30
+
+  tags = {
+    Name    = "text-agent-bedrock-logs"
+    Service = "TextAgent"
+  }
+}
+
 resource "aws_bedrockagent_agent" "text_agent" {
   agent_name              = "text-agent-v1"
   agent_resource_role_arn = aws_iam_role.agent_role.arn
@@ -72,6 +82,45 @@ resource "aws_iam_role_policy" "agent_policy" {
           "lambda:InvokeFunction"
         ]
         Resource = aws_lambda_function.task_tracking.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = [
+          aws_cloudwatch_log_group.bedrock_logs.arn,
+          "${aws_cloudwatch_log_group.bedrock_logs.arn}:*"
+        ]
+      }
+    ]
+  })
+}
+
+# Additional policy for Bedrock logging
+resource "aws_iam_role_policy" "bedrock_logging_policy" {
+  name = "text-agent-bedrock-logging-policy"
+  role = aws_iam_role.agent_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = [
+          "arn:aws:logs:us-west-2:*:log-group:/aws/bedrock/*",
+          "arn:aws:logs:us-west-2:*:log-group:/aws/bedrock/*:*"
+        ]
       }
     ]
   })
