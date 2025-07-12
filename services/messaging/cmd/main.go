@@ -8,6 +8,7 @@ import (
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/agent_action_consumer"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/agent_service"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/message_repository"
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/secrets_service"
 	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
@@ -19,14 +20,29 @@ func main() {
 
 	ctx := context.Background()
 
-	agentAliasId := os.Getenv("AGENT_ALIAS_ID")
-	if agentAliasId == "" {
-		logger.Fatal().Msg("AGENT_ALIAS_ID is not set")
+	agentAliasIdSecretId := os.Getenv("AGENT_ALIAS_ID_SECRET_ID")
+	if agentAliasIdSecretId == "" {
+		logger.Fatal().Msg("AGENT_ALIAS_ID_SECRET_ID is not set")
 	}
 
-	agentId := os.Getenv("AGENT_ID")
-	if agentId == "" {
-		logger.Fatal().Msg("AGENT_ID is not set")
+	agentIdSecretId := os.Getenv("AGENT_ID_SECRET_ID")
+	if agentIdSecretId == "" {
+		logger.Fatal().Msg("AGENT_ID_SECRET_ID is not set")
+	}
+
+	secretsService, err := secrets_service.NewAwsSecretsService(ctx)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to create secrets service")
+	}
+
+	agentAliasId, err := secretsService.GetSecret(ctx, agentAliasIdSecretId)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to get agent alias ID")
+	}
+
+	agentId, err := secretsService.GetSecret(ctx, agentIdSecretId)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to get agent ID")
 	}
 
 	agentService, err := agent_service.NewAws(ctx, agentAliasId, agentId)
