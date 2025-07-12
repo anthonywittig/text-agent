@@ -42,12 +42,14 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 		SessionId:    &sessionId,
 	}
 
+	logger.Info().Interface("invokeInput", invokeInput).Msg("invoking agent")
+
 	invokeOutput, err := a.bedrockAgent.InvokeAgent(ctx, invokeInput)
 	if err != nil {
 		return "", err
 	}
 
-	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Msg("agent result")
+	logger.Info().Interface("invokeOutput.ResultMetadata", invokeOutput.ResultMetadata).Msg("agent result metadata")
 
 	stream := invokeOutput.GetStream()
 
