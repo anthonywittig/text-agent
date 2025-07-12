@@ -74,12 +74,10 @@ func (c *Consumer) invokeAgent(ctx context.Context, payload types.AgentRequest) 
 		return nil
 	}
 
-	response, err := c.agentService.InvokeAgent(ctx, "A new message was received for the conversation between these numbers: "+getParameter(payload, "conversation_phone_numbers"))
+	err := c.agentService.InvokeAgent(ctx, "A new message was received for the conversation between these numbers: "+getParameter(payload, "conversation_phone_numbers"))
 	if err != nil {
 		return fmt.Errorf("failed to invoke agent: %w", err)
 	}
-
-	logger.Info().Str("response", response).Msg("agent response")
 
 	return nil
 }

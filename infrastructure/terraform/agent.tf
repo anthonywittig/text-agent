@@ -29,9 +29,9 @@ resource "aws_bedrockagent_agent" "text_agent" {
 
 resource "null_resource" "prepare_agent" {
   triggers = {
-    agent_state                = sha256(jsonencode(aws_bedrockagent_agent.text_agent))
-    task_tracking_action_group = sha256(jsonencode(aws_bedrockagent_agent_action_group.task_tracking))
-    messaging_action_group     = sha256(jsonencode(aws_bedrockagent_agent_action_group.messaging))
+    agent_state = sha256(jsonencode(aws_bedrockagent_agent.text_agent))
+    #task_tracking_action_group = sha256(jsonencode(aws_bedrockagent_agent_action_group.task_tracking))
+    #messaging_action_group     = sha256(jsonencode(aws_bedrockagent_agent_action_group.messaging))
   }
 
   provisioner "local-exec" {

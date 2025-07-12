@@ -2,12 +2,15 @@ package agent_service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/anthonywittig/text-agent/services/messaging/pkg/types"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
@@ -32,10 +35,10 @@ func NewAws(ctx context.Context, agentAliasId string, agentId string) (AgentServ
 	}, nil
 }
 
-func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
+func (a *Aws) InvokeAgent(ctx context.Context, input string) error {
 	logger := zerolog.Ctx(ctx)
 
-	streamingConfigurations := types.StreamingConfigurations{
+	streamingConfigurations := awsTypes.StreamingConfigurations{
 		StreamFinalResponse: true,
 	}
 	sessionId := uuid.New().String()
@@ -58,7 +61,7 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 
 	invokeOutput, err := a.bedrockAgent.InvokeAgent(ctx, invokeInput)
 	if err != nil {
-		return "", fmt.Errorf("failed to invoke agent: %w", err)
+		return fmt.Errorf("failed to invoke agent: %w", err)
 	}
 
 	logger.Info().
@@ -68,34 +71,39 @@ func (a *Aws) InvokeAgent(ctx context.Context, input string) (string, error) {
 
 	stream := invokeOutput.GetStream()
 
-	var response string
 	logger.Info().Msg("starting to process stream events")
 
 	for event := range stream.Events() {
-		logger.Debug().Interface("event", event).Msg("received stream event")
-
 		switch e := event.(type) {
-		case *types.ResponseStreamMemberChunk:
-			if e.Value.Bytes != nil {
-				chunkText := string(e.Value.Bytes)
-				response += chunkText
-				logger.Debug().Str("chunk", chunkText).Msg("added chunk to response")
+		case *awsTypes.ResponseStreamMemberChunk:
+			logger.Debug().Str("chunk", string(e.Value.Bytes)).Msg("received chunk")
+		case *awsTypes.ResponseStreamMemberTrace:
+			traceBytes, err := json.Marshal(e.Value)
+			if err != nil {
+				logger.Error().Err(err).Msg("failed to marshal trace")
 			}
-		case *types.ResponseStreamMemberTrace:
-			logger.Debug().Interface("trace", e.Value).Msg("received trace event")
-		case *types.ResponseStreamMemberReturnControl:
+			var trace types.AgentTrace
+			err = json.Unmarshal(traceBytes, &trace)
+			if err != nil {
+				logger.Error().Err(err).Msg("failed to unmarshal trace")
+			}
+
+			var traceText types.AgentTraceTextFromJson
+			err = json.Unmarshal([]byte(trace.Trace.Value.Value.Text), &traceText)
+			if err != nil {
+				logger.Error().Err(err).Msg("failed to unmarshal trace text")
+			}
+
+			for _, message := range traceText.Messages {
+				logger.Debug().Str("message", message.Content).Str("role", message.Role).Msg("trace message")
+			}
+
+		case *awsTypes.ResponseStreamMemberReturnControl:
 			logger.Debug().Interface("returnControl", e.Value).Msg("received return control event")
 		default:
-			logger.Debug().Interface("event", event).Msg("received unknown event type")
+			logger.Warn().Interface("event", event).Msg("received unknown event type")
 		}
 	}
 
-	logger.Info().Str("finalResponse", response).Int("responseLength", len(response)).Msg("finished processing stream")
-
-	// If we got no response, log a warning
-	if response == "" {
-		logger.Warn().Msg("agent returned empty response - this might indicate the agent didn't understand the input or couldn't take action")
-	}
-
-	return response, nil
+	return nil
 }

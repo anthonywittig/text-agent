@@ -65,3 +65,41 @@ type AgentResponseResponseFunctionResponseResponseBody struct {
 type AgentResponseResponseFunctionResponseResponseBodyContentType struct {
 	Body string `json:"body"` // This should be a JSON string.
 }
+
+type AgentTrace struct {
+	AgentAliasId     string      `json:"AgentAliasId"`
+	AgentId          string      `json:"AgentId"`
+	AgentVersion     string      `json:"AgentVersion"`
+	CallerChain      interface{} `json:"CallerChain"`
+	CollaboratorName interface{} `json:"CollaboratorName"`
+	EventTime        string      `json:"EventTime"`
+	SessionId        string      `json:"SessionId"`
+	Trace            struct {
+		Value struct {
+			Value struct {
+				FoundationModel        string `json:"FoundationModel"`
+				InferenceConfiguration struct {
+					MaximumLength int      `json:"MaximumLength"`
+					StopSequences []string `json:"StopSequences"`
+					Temperature   int      `json:"Temperature"`
+					TopK          int      `json:"TopK"`
+					TopP          int      `json:"TopP"`
+				} `json:"InferenceConfiguration"`
+				OverrideLambda     interface{} `json:"OverrideLambda"`
+				ParserMode         string      `json:"ParserMode"`
+				PromptCreationMode string      `json:"PromptCreationMode"`
+				Text               string      `json:"Text"`
+				TraceId            string      `json:"TraceId"`
+				Type               string      `json:"Type"`
+			}
+		}
+	}
+}
+
+type AgentTraceTextFromJson struct {
+	System   string `json:"system"`
+	Messages []struct {
+		Content string `json:"content"`
+		Role    string `json:"role"`
+	} `json:"messages"`
+}
