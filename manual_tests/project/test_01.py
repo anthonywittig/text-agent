@@ -2,8 +2,7 @@ import boto3
 import logging
 import sys
 import time
-import uuid
-import base64
+import json
 
 from faker import Faker
 
@@ -11,61 +10,134 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main(agent_alias_id: str, agent_id: str):
-    bedrock_agent_runtime = boto3.client("bedrock-agent-runtime")
+def main():
 
-    session_id = str(uuid.uuid4())
     Faker.seed(time.time())
     fake = Faker("en_US")
 
     # Note that we strip of the extensions.
-    phone_numbers = ",".join([fake.phone_number().split("x")[0] for _ in range(2)])
-    context = f"context: phone numbers {phone_numbers}"
-    input_text = f"{context}; message: Joe, please buy a new laptop for the office"
+    phone_numbers = [fake.phone_number().split("x")[0] for _ in range(3)]
 
-    logger.info(f"Invoking agent with input: {input_text}")
-    response = invoke_agent(
-        bedrock_agent_runtime, agent_alias_id, agent_id, session_id, input_text
-    )
-    logger.info(response)
-
-    input_text = f"{context}; message: agent, what tasks do we have?"
-    logger.info(f"Invoking agent with input: {input_text}")
-    response = invoke_agent(
-        bedrock_agent_runtime, agent_alias_id, agent_id, session_id, input_text
-    )
-    logger.info(response)
-
-
-def invoke_agent(
-    bedrock_agent_runtime: boto3.client,
-    agent_alias_id: str,
-    agent_id: str,
-    session_id: str,
-    input_text,
-) -> str:
-    response = bedrock_agent_runtime.invoke_agent(
-        agentAliasId=agent_alias_id,
-        agentId=agent_id,
-        sessionId=session_id,
-        inputText=input_text,
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "Joe, please buy a new laptop for the office",
     )
 
-    completion = ""
-    for event in response.get("completion", []):
-        chunk = event.get("chunk", {})
-        if "bytes" in chunk:
-            completion += str(chunk["bytes"])
+    create_message(
+        phone_numbers,
+        phone_numbers[2],  # Sam
+        "Good news! I found my cat at my neighbor's house! Thanks for helping me look!",
+    )
 
-    return completion
+    create_message(
+        phone_numbers,
+        phone_numbers[1],  # Joe
+        "That's awesome! Sam, could you remove the missing cat posters when you get a chance?",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[2],  # Sam
+        "Yeah, I'll do it tomorrow.",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "agent, what tasks do we have?",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[2],  # Sam
+        "I took them down.",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[1],  # Joe
+        "I got the laptop, I think you'll like it.",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "Anyone know where I left my keys?",
+    )
+
+    # The agent will ask if it should create a task for the keys.
+
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "No, we don't need to track that.",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[0],  # Jane
+        "agent, what tasks do we have?",
+    )
+
+    create_message(
+        phone_numbers,
+        phone_numbers[1],  # Joe
+        "I found your keys on the front desk.",
+    )
+
+
+def create_message(
+    phone_numbers: list[str],
+    from_number: str,
+    body: str,
+) -> None:
+    logger.info(f"Invoking lambda with body: {body}")
+
+    lambda_client = boto3.client("lambda")
+
+    # phone_numbers = ",".join([fake.phone_number().split("x")[0] for _ in range(2)])
+
+    response = lambda_client.invoke(
+        FunctionName="text-agent-messaging",
+        InvocationType="RequestResponse",
+        # The lambda expects a Bedrock Agent payload.
+        Payload=json.dumps(
+            {
+                "messageVersion": "1.0",
+                "function": "messaging_create",
+                "parameters": [
+                    {
+                        "name": "conversation_phone_numbers",
+                        "type": "array",
+                        "value": "[" + ", ".join(phone_numbers) + "]",
+                    },
+                    {
+                        "name": "from",
+                        "type": "string",
+                        "value": from_number,
+                    },
+                    {
+                        "name": "body",
+                        "type": "string",
+                        "value": body,
+                    },
+                ],
+                "inputText": "",
+                "agent": {
+                    "name": "",
+                    "version": "",
+                    "id": "",
+                    "aliasId": "",
+                },
+                "actionGroup": "Messaging",
+            }
+        ),
+    )
+
+    payload = json.loads(response["Payload"].read())
+    logger.info(f"Payload: {payload}")
 
 
 if __name__ == "__main__":
-    # we expect an agent_alias_id as an argument
-    if len(sys.argv) != 3:
-        logger.error("Usage: python test_01.py <agent_alias_id> <agent_id>")
-        sys.exit(1)
-
-    agent_alias_id = sys.argv[1]
-    agent_id = sys.argv[2]
-    main(agent_alias_id, agent_id)
+    main()

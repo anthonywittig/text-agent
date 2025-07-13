@@ -7,5 +7,4 @@ type Task struct {
 	Name           string `json:"name" dynamodbav:"name"`
 	Description    string `json:"description,omitempty" dynamodbav:"description,omitempty"`
 	Source         string `json:"source" dynamodbav:"source"`
-	Status         string `json:"status" dynamodbav:"status"`
 }
