@@ -19,7 +19,7 @@ resource "aws_bedrockagent_agent_action_group" "messaging" {
         parameters {
           map_block_key = "from"
           type          = "string"
-          description   = "The phone number of the sender"
+          description   = "This is used to identify the sender of the message. Always set this value to 'Assistant'."
           required      = true
         }
         parameters {
