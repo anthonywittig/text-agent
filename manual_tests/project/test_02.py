@@ -1,81 +1,19 @@
 import boto3
 import logging
 import sys
-import time
 import json
 
-from faker import Faker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main():
-
-    Faker.seed(time.time())
-    fake = Faker("en_US")
-
-    # Note that we strip of the extensions.
-    phone_numbers = [fake.phone_number().split("x")[0] for _ in range(3)]
+def main(phone_numbers: list[str], from_number: str, message: str):
 
     create_message(
         phone_numbers,
-        phone_numbers[0],  # Jane
-        "Joe, please buy a new laptop for the office",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[2],  # Sam
-        "Good news! I found my cat at my neighbor's house! Thanks for helping me look!",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[1],  # Joe
-        "That's awesome! Sam, could you remove the missing cat posters when you get a chance?",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[2],  # Sam
-        "Yeah, I'll do it tomorrow.",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[0],  # Jane
-        "agent, what tasks do we have?",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[2],  # Sam
-        "I took them down.",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[1],  # Joe
-        "I got the laptop, I think you'll like it.",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[0],  # Jane
-        "Anyone know where I left my keys?",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[0],  # Jane
-        "agent, what tasks do we have?",
-    )
-
-    create_message(
-        phone_numbers,
-        phone_numbers[1],  # Joe
-        "I found your keys on the front desk.",
+        from_number,
+        message,
     )
 
 
@@ -132,4 +70,12 @@ def create_message(
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 3:
+        logger.error("Usage: python test_02.py sender_index message")
+        sys.exit(1)
+
+    phone_numbers = ["2005555555", "3005555555", "4005555555"]
+    from_number = phone_numbers[int(sys.argv[1])]
+    message = sys.argv[2]
+
+    main(phone_numbers, from_number, message)
